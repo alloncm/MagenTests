@@ -1,5 +1,6 @@
 DEF VRAM_TILE_DATA_START_ADDRESS EQU $8000
 DEF VRAM_TILE_MAP0_START_ADDRESS EQU $9800
+DEF VRAM_TILE_MAP1_START_ADDRESS EQU $9C00
 DEF VRAM_TILE_MAP_SIZE EQU $400
 DEF OAM_START_ADDRESS EQU $FE00
 DEF LY EQU $FF44
@@ -15,8 +16,7 @@ DEF INTE EQU $FFFF
 DEF INTF EQU $FF0F
 
 SECTION "stat interrupt", ROM0[$48]
-    call StatInterruptHandler
-    reti
+    jp StatInterruptHandler
 
 SECTION "boot", ROM0[$100]
 Start::
@@ -45,10 +45,22 @@ Main::
     ld bc, VRAM_TILE_MAP_SIZE
     ld a, 0 ; tile number to use
     call Memset
+    
+    ld hl, VRAM_TILE_MAP1_START_ADDRESS
+    ld bc, VRAM_TILE_MAP_SIZE
+    ld a, 1 ; tile number to use
+    call Memset
 
-    ld a, 1 ; bank 1
-    ld [VBK], a ; set vram bank
+    ; set vram bank to 1
+    ld a, 1 
+    ld [VBK], a
+    ; set data
     ld hl, VRAM_TILE_MAP0_START_ADDRESS
+    ld bc, VRAM_TILE_MAP_SIZE
+    ld a, %10000000 ; bg priority, bg pallete 0
+    call Memset
+    
+    ld hl, VRAM_TILE_MAP1_START_ADDRESS
     ld bc, VRAM_TILE_MAP_SIZE
     ld a, %10000000 ; bg priority, bg pallete 0
     call Memset
@@ -60,16 +72,14 @@ Main::
     ld bc, OAMData
     ld de, OAMData.end - OAMData
     call Memcpy
-    ; ld a, 20
-    ; ldi [hl], a
-    ; ldi [hl], a
-    ; ld a, 1         ; tile number to use for the object
-    ; ldi [hl], a
-    ; ld a, %00000000 ; obj priority, obj pallete 0
-    ; ldi [hl], a
 
     ; palletes
-    ; BG pallete - set color 1 of pallete 0 to red
+    ; BG pallete - set color 1 of pallete 0 to black
+    ld d, 2 ; color index
+    ld e, 1 ; BG
+    ld bc, $0000 ; black
+    call LoadPallete
+    ; BG pallete - set color 0 of pallete 0 to black
     ld d, 0 ; color index
     ld e, 1 ; BG
     ld bc, $0000 ; black
@@ -79,17 +89,28 @@ Main::
     ld e, 0 ; OAM
     ld bc, $03E0 ; green
     call LoadPallete
+    
+    ld d, 4 ; color index
+    ld e, 0 ; OAM
+    ld bc, $001F ; red
+    call LoadPallete
 
     ld a, %10010011 ; turn lcd on, with the correct flags
     ld [LCDC], a
 
+    ld a, 24
+    ld [LYC], a
+    ld a, $40
+    ld [STAT], a  ; enable lyc source for stat
+
     ; enable stat interrupt
     ei
+    ld a, 0
+    ld [INTF], a ; clear if register
     ld a, %00010
-    ld [INTE], a
+    ld [INTE], a ; enable stat interrupt
 
-
-
+    ; block
     .loop
     jp .loop
 
@@ -116,8 +137,24 @@ LoadPallete:
     ret
 
 StatInterruptHandler:
-    ret
-
+    ld a, [LYC]
+    cp a, 32
+    jr z, .set_tile_map_40
+    cp a, 24
+    jr z, .set_tile_map_32
+    reti
+    .set_tile_map_40
+        ld a, %10010011
+        ld [LCDC], a
+        ld a, 24
+        ld [LYC], a
+        reti
+    .set_tile_map_32
+        ld a, %10011011
+        ld [LCDC], a
+        ld a, 32
+        ld [LYC], a
+        reti
 ; mut hl - dst (address to set)
 ; mut bc - len (non zero length)
 ; const a - val (value to set)
