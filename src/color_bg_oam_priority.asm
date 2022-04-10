@@ -16,7 +16,7 @@ DEF INTE EQU $FFFF
 DEF INTF EQU $FF0F
 
 SECTION "stat interrupt", ROM0[$48]
-    jp StatInterruptHandler
+    jp hl
 
 SECTION "boot", ROM0[$100]
 Start::
@@ -82,7 +82,7 @@ Main::
     ; BG pallete - set color 0 of pallete 0 to black
     ld d, 0 ; color index
     ld e, 1 ; BG
-    ld bc, $0000 ; black
+    ld bc, $FFFF ; black
     call LoadPallete
 
     ld d, 2 ; color index
@@ -98,10 +98,13 @@ Main::
     ld a, %10010011 ; turn lcd on, with the correct flags
     ld [LCDC], a
 
-    ld a, 24
+    ld a, [OAM_LYC_PIPELINE]
     ld [LYC], a
     ld a, $40
     ld [STAT], a  ; enable lyc source for stat
+    ld hl, StatInterruptHandlerObj1Start
+    ld c, 0
+
 
     ; enable stat interrupt
     ei
@@ -136,25 +139,41 @@ LoadPallete:
         ld [OBPD], a
     ret
 
-StatInterruptHandler:
-    ld a, [LYC]
-    cp a, 32
-    jr z, .set_tile_map_40
-    cp a, 24
-    jr z, .set_tile_map_32
+StatInterruptHandlerInit:
+    ld a, %10010011
+    ld [LCDC], a    ; switch bg master priority on and switch to tile map 0 where bg uses color 0
+    call IncCounter
+    ld [LYC], a
     reti
-    .set_tile_map_40
-        ld a, %10010011
-        ld [LCDC], a
-        ld a, 24
-        ld [LYC], a
-        reti
-    .set_tile_map_32
-        ld a, %10011011
-        ld [LCDC], a
-        ld a, 32
-        ld [LYC], a
-        reti
+
+StatInterruptHandlerObj1Start:
+    ld a, %10011011
+    ld [LCDC], a    ; switch to tile map 1 where bg uses color 1
+    call IncCounter
+    ld [LYC], a
+    reti
+
+StatInterruptHandlerObj1End:
+    ld a, %10010011
+    ld [LCDC], a    ; switch to tile map 0 where bg uses color 0
+    call IncCounter
+    ld [LYC], a
+    reti 
+
+StatInterruptHandlerObj2Start:
+    ld a, %10011010
+    ld [LCDC], a    ; switch bg master priority off and switch to tile map 1 where bg uses color 1
+    call IncCounter
+    ld [LYC], a
+    reti 
+
+StatInterruptHandlerObj2End:
+    ld a, %10010011
+    ld [LCDC], a    ; switch bg master priority on and switch to tile map 0 where bg uses color 0
+    call IncCounter
+    ld [LYC], a
+    reti
+
 ; mut hl - dst (address to set)
 ; mut bc - len (non zero length)
 ; const a - val (value to set)
@@ -220,7 +239,54 @@ BackgroundTileData:
     dw `22222222
 .end
 
+DEF OBJ0_Y EQU 20
+DEF OBJ1_Y EQU 40
+DEF OBJ2_Y EQU 60
+DEF OBJ3_Y EQU 80
+
+OAM_LYC_PIPELINE:
+    db 0
+    db OBJ1_Y - 16
+    db OBJ1_Y - 8
+    db OBJ2_Y - 16
+    ; db OBJ2_Y - 8
+.end
+
+STAT_INTERRUPT_PIPELINE:
+    dw StatInterruptHandlerInit
+    dw StatInterruptHandlerObj1Start
+    dw StatInterruptHandlerObj1End
+    dw StatInterruptHandlerObj2Start    
+    ; dw StatInterruptHandlerObj2End
+
+IncCounter:
+    inc c
+    ld a, OAM_LYC_PIPELINE.end - OAM_LYC_PIPELINE
+    cp a, c
+    jr nz, .exit
+        ld c, 0
+    .exit
+    push bc
+    ld a, c
+    add a, a
+    ld c, a
+    ld b, 0
+    ld hl, STAT_INTERRUPT_PIPELINE
+    add hl, bc ; set hl for the next callback
+    ld e, [hl]
+    inc hl
+    ld d, [hl]
+    pop bc
+    ld hl, OAM_LYC_PIPELINE
+    add hl, bc
+    ld a, [hl]
+    ld h, d
+    ld l, e
+    ret
+
 OAMData:
-    db 20, 20, 1, 0 ; object 0
-    db 40, 40, 2, 0 ; object 1
+    db OBJ0_Y, 20, 1, 0   ; object 0 - OAM color 1 on bg color 0 with all the priorities set
+    db OBJ1_Y, 20, 2, 0   ; object 1 - OAM color 2 on bg color 1 with all the priorities set
+    db OBJ2_Y, 20, 1, 0   ; object 2 - OAM color 1 on bg color 1 with the bg priority and the oam priority (bg master priority is off)
+    db OBJ3_Y, 20, 2, $80 ; object 3 - OAM color 2 on bg color 0 with the oam priority off
 .end
