@@ -64,6 +64,12 @@ Main::
     ld bc, VRAM_TILE_MAP_SIZE
     ld a, %10000000 ; bg priority, bg pallete 0
     call Memset
+    
+    ld hl, VRAM_TILE_MAP1_START_ADDRESS + (32 * ((OBJ3_Y - 16) / 8))
+    ld bc, 32
+    ld a, 0
+    call Memset
+
     ; set vram bank to 0
     ld a, 0
     ld [VBK], a
@@ -142,36 +148,43 @@ LoadPallete:
 StatInterruptHandlerInit:
     ld a, %10010011
     ld [LCDC], a    ; switch bg master priority on and switch to tile map 0 where bg uses color 0
-    call IncCounter
-    ld [LYC], a
+    call AdvancePipeline
     reti
 
 StatInterruptHandlerObj1Start:
     ld a, %10011011
     ld [LCDC], a    ; switch to tile map 1 where bg uses color 1
-    call IncCounter
-    ld [LYC], a
+    call AdvancePipeline
     reti
 
 StatInterruptHandlerObj1End:
     ld a, %10010011
     ld [LCDC], a    ; switch to tile map 0 where bg uses color 0
-    call IncCounter
-    ld [LYC], a
+    call AdvancePipeline
     reti 
 
 StatInterruptHandlerObj2Start:
     ld a, %10011010
     ld [LCDC], a    ; switch bg master priority off and switch to tile map 1 where bg uses color 1
-    call IncCounter
-    ld [LYC], a
+    call AdvancePipeline
     reti 
 
 StatInterruptHandlerObj2End:
     ld a, %10010011
     ld [LCDC], a    ; switch bg master priority on and switch to tile map 0 where bg uses color 0
-    call IncCounter
-    ld [LYC], a
+    call AdvancePipeline
+    reti
+
+StatInterruptHandlerObj3Start:
+    ld a, %10011011
+    ld [LCDC], a    ; switch bg master priority off and switch to tile map 1 where bg uses color 1
+    call AdvancePipeline
+    reti
+    
+StatInterruptHandlerObj4Start:
+    ld a, %10010011
+    ld [LCDC], a    ; switch bg master priority off and switch to tile map 0 where bg uses color 0
+    call AdvancePipeline
     reti
 
 ; mut hl - dst (address to set)
@@ -243,43 +256,62 @@ DEF OBJ0_Y EQU 20
 DEF OBJ1_Y EQU 40
 DEF OBJ2_Y EQU 60
 DEF OBJ3_Y EQU 80
+DEF OBJ4_Y EQU 100
 
 OAM_LYC_PIPELINE:
     db 0
     db OBJ1_Y - 16
-    db OBJ1_Y - 8
+    ; db OBJ1_Y - 8
     db OBJ2_Y - 16
     ; db OBJ2_Y - 8
+    db OBJ3_Y - 16
+    db OBJ4_Y - 16
 .end
 
 STAT_INTERRUPT_PIPELINE:
     dw StatInterruptHandlerInit
     dw StatInterruptHandlerObj1Start
-    dw StatInterruptHandlerObj1End
+    ; dw StatInterruptHandlerObj1End
     dw StatInterruptHandlerObj2Start    
     ; dw StatInterruptHandlerObj2End
+    dw StatInterruptHandlerObj3Start
+    dw StatInterruptHandlerObj4Start
+.end
 
-IncCounter:
+; Asserting that the pipelines are the same length
+STATIC_ASSERT (STAT_INTERRUPT_PIPELINE.end - STAT_INTERRUPT_PIPELINE) / 2 == OAM_LYC_PIPELINE.end - OAM_LYC_PIPELINE, "STAT_INTERRUPT pipeline is not compatible with the OAM_LYC pipeline"
+
+AdvancePipeline:
+    ; increment and check for overflow
     inc c
     ld a, OAM_LYC_PIPELINE.end - OAM_LYC_PIPELINE
     cp a, c
     jr nz, .exit
-        ld c, 0
-    .exit
-    push bc
+        ld c, 0     ; reset the counter in case of overflow
+    
+    ; update hl register with the next callback address and LYC with the next LYC value
+.exit
+    ld b, 0
+    push bc     ; save the counter (c) in order to use bc in next statements
+    ; multiply c by 2
     ld a, c
     add a, a
     ld c, a
-    ld b, 0
+
     ld hl, STAT_INTERRUPT_PIPELINE
-    add hl, bc ; set hl for the next callback
+    add hl, bc ; set hl for the next callback (base address + the offset in bc)
+    ; copy hl to de
     ld e, [hl]
     inc hl
     ld d, [hl]
-    pop bc
+
+    pop bc ; reload original counter (c)
+
     ld hl, OAM_LYC_PIPELINE
-    add hl, bc
+    add hl, bc ; hl points to the next value (base address + offest in counter (bc))
     ld a, [hl]
+    ld [LYC], a ; load lyc with the next value
+    ; copy de to hl
     ld h, d
     ld l, e
     ret
@@ -288,5 +320,6 @@ OAMData:
     db OBJ0_Y, 20, 1, 0   ; object 0 - OAM color 1 on bg color 0 with all the priorities set
     db OBJ1_Y, 20, 2, 0   ; object 1 - OAM color 2 on bg color 1 with all the priorities set
     db OBJ2_Y, 20, 1, 0   ; object 2 - OAM color 1 on bg color 1 with the bg priority and the oam priority (bg master priority is off)
-    db OBJ3_Y, 20, 2, $80 ; object 3 - OAM color 2 on bg color 0 with the oam priority off
+    db OBJ3_Y, 20, 2, $80 ; object 3 - OAM color 2 on bg color 1 with the oam priority off and the bg priority off (bg master priority is on)
+    db OBJ4_Y, 20, 1, 0   ; object 4 - OAM color 2 on bg color 0 with the oam priority off and the bg priorities on (master and regualr)
 .end
