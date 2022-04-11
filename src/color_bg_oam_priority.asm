@@ -64,11 +64,6 @@ Main::
     ld bc, VRAM_TILE_MAP_SIZE
     ld a, %10000000 ; bg priority, bg pallete 0
     call Memset
-    
-    ld hl, VRAM_TILE_MAP1_START_ADDRESS + (32 * ((OBJ3_Y - 16) / 8))
-    ld bc, 32
-    ld a, 0
-    call Memset
 
     ; set vram bank to 0
     ld a, 0
@@ -88,7 +83,7 @@ Main::
     ; BG pallete - set color 0 of pallete 0 to black
     ld d, 0 ; color index
     ld e, 1 ; BG
-    ld bc, $FFFF ; black
+    ld bc, $0000 ; black
     call LoadPallete
 
     ld d, 2 ; color index
@@ -157,23 +152,11 @@ StatInterruptHandlerObj1Start:
     call AdvancePipeline
     reti
 
-StatInterruptHandlerObj1End:
-    ld a, %10010011
-    ld [LCDC], a    ; switch to tile map 0 where bg uses color 0
-    call AdvancePipeline
-    reti 
-
 StatInterruptHandlerObj2Start:
     ld a, %10011010
     ld [LCDC], a    ; switch bg master priority off and switch to tile map 1 where bg uses color 1
     call AdvancePipeline
     reti 
-
-StatInterruptHandlerObj2End:
-    ld a, %10010011
-    ld [LCDC], a    ; switch bg master priority on and switch to tile map 0 where bg uses color 0
-    call AdvancePipeline
-    reti
 
 StatInterruptHandlerObj3Start:
     ld a, %10011011
@@ -261,9 +244,7 @@ DEF OBJ4_Y EQU 100
 OAM_LYC_PIPELINE:
     db 0
     db OBJ1_Y - 16
-    ; db OBJ1_Y - 8
     db OBJ2_Y - 16
-    ; db OBJ2_Y - 8
     db OBJ3_Y - 16
     db OBJ4_Y - 16
 .end
@@ -271,9 +252,7 @@ OAM_LYC_PIPELINE:
 STAT_INTERRUPT_PIPELINE:
     dw StatInterruptHandlerInit
     dw StatInterruptHandlerObj1Start
-    ; dw StatInterruptHandlerObj1End
-    dw StatInterruptHandlerObj2Start    
-    ; dw StatInterruptHandlerObj2End
+    dw StatInterruptHandlerObj2Start
     dw StatInterruptHandlerObj3Start
     dw StatInterruptHandlerObj4Start
 .end
