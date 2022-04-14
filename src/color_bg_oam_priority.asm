@@ -1,22 +1,6 @@
 SECTION "graphics_data", ROM0
 INCLUDE "graphics_data.asm"
-
-DEF VRAM_TILE_DATA_START_ADDRESS EQU $8000
-DEF VRAM_TILE_MAP0_START_ADDRESS EQU $9800
-DEF VRAM_TILE_MAP1_START_ADDRESS EQU $9C00
-DEF VRAM_TILE_MAP_SIZE EQU $400
-DEF OAM_START_ADDRESS EQU $FE00
-DEF LY EQU $FF44
-DEF LYC EQU $FF45
-DEF VBK EQU $FF4F
-DEF BGPI EQU $FF68
-DEF BGPD EQU $FF69
-DEF OBPI EQU $FF6A
-DEF OBPD EQU $FF6B
-DEF LCDC EQU $FF40
-DEF STAT EQU $FF41
-DEF INTE EQU $FFFF
-DEF INTF EQU $FF0F
+INCLUDE "hardware.inc"
 
 SECTION "stat interrupt", ROM0[$48]
     jp hl
@@ -32,47 +16,47 @@ Main::
 
     ; turn lcd off - must be done during vblank mode
     .wait_for_vbalnk
-        ld a, [STAT]
+        ld a, [rSTAT]
         and a, %11  ; get only the mode flag
         cp a, 1     ; 1 is the vblank status
         jr nz, .wait_for_vbalnk
     ld a, 0
-    ld [LCDC], a
+    ld [rLCDC], a
 
-    ld hl, VRAM_TILE_DATA_START_ADDRESS ; VRAM tile data
+    ld hl, _VRAM ; VRAM tile data
     ld bc, TileData
     ld de, TileData.end - TileData
     call Memcpy
 
-    ld hl, VRAM_TILE_MAP0_START_ADDRESS
-    ld bc, VRAM_TILE_MAP_SIZE
+    ld hl, _SCRN0
+    ld bc, $400 ; tile map size
     ld a, 0 ; tile number to use
     call Memset
     
-    ld hl, VRAM_TILE_MAP1_START_ADDRESS
-    ld bc, VRAM_TILE_MAP_SIZE
+    ld hl, _SCRN1
+    ld bc, $400
     ld a, 0 ; tile number to use
     call Memset
 
     ; set vram bank to 1
     ld a, 1 
-    ld [VBK], a
+    ld [rVBK], a
     ; set data
-    ld hl, VRAM_TILE_MAP0_START_ADDRESS
-    ld bc, VRAM_TILE_MAP_SIZE
+    ld hl, _SCRN0
+    ld bc, $400
     ld a, 0 ; bg priority off, bg pallete 0
     call Memset
     
-    ld hl, VRAM_TILE_MAP1_START_ADDRESS
-    ld bc, VRAM_TILE_MAP_SIZE
+    ld hl, _SCRN1
+    ld bc, $400
     ld a, %10000000 ; bg priority on, bg pallete 0
     call Memset
 
     ; set vram bank to 0
     ld a, 0
-    ld [VBK], a
+    ld [rVBK], a
 
-    ld hl, OAM_START_ADDRESS
+    ld hl, _OAMRAM
     ld bc, OAMData
     ld de, OAMData.end - OAMData
     call Memcpy
@@ -100,12 +84,12 @@ Main::
     call LoadPallete
 
     ld a, %10010011 ; turn lcd on, with the correct flags
-    ld [LCDC], a
+    ld [rLCDC], a
 
     ld a, [OAM_LYC_PIPELINE]
-    ld [LYC], a
+    ld [rLYC], a
     ld a, $40
-    ld [STAT], a  ; enable lyc source for stat
+    ld [rSTAT], a  ; enable lyc source for stat
     ld hl, StatInterruptHandlerObj0Start
     ld c, 0
 
@@ -113,9 +97,9 @@ Main::
     ; enable stat interrupt
     ei
     ld a, 0
-    ld [INTF], a ; clear if register
+    ld [rIF], a ; clear if register
     ld a, %00010
-    ld [INTE], a ; enable stat interrupt
+    ld [rIE], a ; enable stat interrupt
 
     ; block
     .loop
@@ -130,17 +114,17 @@ LoadPallete:
     bit 0, e ; check if 0 (oam) or 1 (bg)
     jr z, .oam_pallete
     .bg_pallete
-        ld [BGPI], a
+        ld [rBCPS], a
         ld a, c
-        ld [BGPD], a
+        ld [rBCPD], a
         ld a, b
-        ld [BGPD], a
+        ld [rBCPD], a
     .oam_pallete
-        ld [OBPI], a
+        ld [rOCPS], a
         ld a, c
-        ld [OBPD], a
+        ld [rOCPD], a
         ld a, b
-        ld [OBPD], a
+        ld [rOCPD], a
     ret
 
 
@@ -148,56 +132,56 @@ LoadPallete:
 StatInterruptHandlerObj0Start:
 ; OAM - on | BG - on | BGM - on
     ld a, %10011011
-    ld [LCDC], a 
+    ld [rLCDC], a 
     call AdvancePipeline
     reti
 
 StatInterruptHandlerObj1Start:
 ; OAM - on | BG - on | BGM - off
     ld a, %10011010
-    ld [LCDC], a
+    ld [rLCDC], a
     call AdvancePipeline
     reti 
 
 StatInterruptHandlerObj2Start:
 ; OAM - off| BG - off| BGM - on
     ld a, %10010011
-    ld [LCDC], a
+    ld [rLCDC], a
     call AdvancePipeline
     reti
     
 StatInterruptHandlerObj3Start:
 ; OAM - off| BG - off| BGM - on
     ld a, %10011011
-    ld [LCDC], a
+    ld [rLCDC], a
     call AdvancePipeline
     reti
 
 StatInterruptHandlerObj4Start:
 ; OAM - on | BG - off| BGM - on
     ld a, %10010011
-    ld [LCDC], a
+    ld [rLCDC], a
     call AdvancePipeline
     reti
 
 StatInterruptHandlerObj5Start:
 ; OAM - on | BG - off| BGM - off
     ld a, %10010010
-    ld [LCDC], a
+    ld [rLCDC], a
     call AdvancePipeline
     reti
 
 StatInterruptHandlerObj6Start:
 ; OAM - off| BG - on | BGM - off
     ld a, %10011010
-    ld [LCDC], a
+    ld [rLCDC], a
     call AdvancePipeline
     reti
 
 StatInterruptHandlerObj7Start:
 ; OAM - off| BG - off| BGM - off
     ld a, %10010010
-    ld [LCDC], a    ; switch bg master priority off and switch to tile map 0 where bg uses color 0
+    ld [rLCDC], a    ; switch bg master priority off and switch to tile map 0 where bg uses color 0
     call AdvancePipeline
     reti
 
@@ -266,7 +250,7 @@ AdvancePipeline:
     ld hl, OAM_LYC_PIPELINE
     add hl, bc ; hl points to the next value (base address + offest in counter (bc))
     ld a, [hl]
-    ld [LYC], a ; load lyc with the next value
+    ld [rLYC], a ; load lyc with the next value
     ; copy de to hl
     ld h, d
     ld l, e

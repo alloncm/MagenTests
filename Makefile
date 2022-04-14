@@ -13,6 +13,7 @@ ASMFLAGS = -L				# L - disable optimiziations
 FIXFLAGS = -C -v -m 0 -p 0  # v - equlivant to -f lhg that fixes some header values \
 							  m - cartrigde type, p - pad value \
 							  C - for CGB only
+HARDWAREINC_PATH = hardware.inc/
 
 SRC_DIR = src
 SRC_FILE = $(SRC_DIR)/color_bg_oam_priority.asm
@@ -23,7 +24,7 @@ $(TARGET).gbc: $(TARGET).o
 	$(RGBFIX) $(FIXFLAGS) $@
 
 $(TARGET).o: $(SRC_FILE)
-	$(RGBASM) -i $(SRC_DIR) -o $@ $^
+	$(RGBASM) -i $(SRC_DIR) -i $(HARDWAREINC_PATH) -o $@ $^
 
 .PHONY: clean
 clean:
