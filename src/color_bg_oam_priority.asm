@@ -37,8 +37,8 @@ Main::
     ld [LCDC], a
 
     ld hl, VRAM_TILE_DATA_START_ADDRESS ; VRAM tile data
-    ld bc, BackgroundTileData
-    ld de, BackgroundTileData.end - BackgroundTileData
+    ld bc, TileData
+    ld de, TileData.end - TileData
     call Memcpy
 
     ld hl, VRAM_TILE_MAP0_START_ADDRESS
@@ -48,7 +48,7 @@ Main::
     
     ld hl, VRAM_TILE_MAP1_START_ADDRESS
     ld bc, VRAM_TILE_MAP_SIZE
-    ld a, 1 ; tile number to use
+    ld a, 0 ; tile number to use
     call Memset
 
     ; set vram bank to 1
@@ -57,12 +57,12 @@ Main::
     ; set data
     ld hl, VRAM_TILE_MAP0_START_ADDRESS
     ld bc, VRAM_TILE_MAP_SIZE
-    ld a, %10000000 ; bg priority, bg pallete 0
+    ld a, 0 ; bg priority off, bg pallete 0
     call Memset
     
     ld hl, VRAM_TILE_MAP1_START_ADDRESS
     ld bc, VRAM_TILE_MAP_SIZE
-    ld a, %10000000 ; bg priority, bg pallete 0
+    ld a, %10000000 ; bg priority on, bg pallete 0
     call Memset
 
     ; set vram bank to 0
@@ -103,7 +103,7 @@ Main::
     ld [LYC], a
     ld a, $40
     ld [STAT], a  ; enable lyc source for stat
-    ld hl, StatInterruptHandlerObj1Start
+    ld hl, StatInterruptHandlerObj0Start
     ld c, 0
 
 
@@ -140,32 +140,60 @@ LoadPallete:
         ld [OBPD], a
     ret
 
-StatInterruptHandlerInit:
-    ld a, %10010011
-    ld [LCDC], a    ; switch bg master priority on and switch to tile map 0 where bg uses color 0
+
+
+StatInterruptHandlerObj0Start:
+; OAM - on | BG - on | BGM - on
+    ld a, %10011011
+    ld [LCDC], a 
     call AdvancePipeline
     reti
 
 StatInterruptHandlerObj1Start:
-    ld a, %10011011
-    ld [LCDC], a    ; switch to tile map 1 where bg uses color 1
-    call AdvancePipeline
-    reti
-
-StatInterruptHandlerObj2Start:
+; OAM - on | BG - on | BGM - off
     ld a, %10011010
-    ld [LCDC], a    ; switch bg master priority off and switch to tile map 1 where bg uses color 1
+    ld [LCDC], a
     call AdvancePipeline
     reti 
 
-StatInterruptHandlerObj3Start:
-    ld a, %10011011
-    ld [LCDC], a    ; switch bg master priority off and switch to tile map 1 where bg uses color 1
+StatInterruptHandlerObj2Start:
+; OAM - off| BG - off| BGM - on
+    ld a, %10010011
+    ld [LCDC], a
     call AdvancePipeline
     reti
     
+StatInterruptHandlerObj3Start:
+; OAM - off| BG - off| BGM - on
+    ld a, %10011011
+    ld [LCDC], a
+    call AdvancePipeline
+    reti
+
 StatInterruptHandlerObj4Start:
+; OAM - on | BG - off| BGM - on
     ld a, %10010011
+    ld [LCDC], a
+    call AdvancePipeline
+    reti
+
+StatInterruptHandlerObj5Start:
+; OAM - on | BG - off| BGM - off
+    ld a, %10010010
+    ld [LCDC], a
+    call AdvancePipeline
+    reti
+
+StatInterruptHandlerObj6Start:
+; OAM - off| BG - on | BGM - off
+    ld a, %10011010
+    ld [LCDC], a
+    call AdvancePipeline
+    reti
+
+StatInterruptHandlerObj7Start:
+; OAM - off| BG - off| BGM - off
+    ld a, %10010010
     ld [LCDC], a    ; switch bg master priority off and switch to tile map 0 where bg uses color 0
     call AdvancePipeline
     reti
@@ -206,20 +234,11 @@ Memcpy:
     jr nz, Memcpy
     ret
 
-BackgroundTileData:
+TileData:
     dw `00000000
     dw `00000000
     dw `00000000
     dw `00000000
-    dw `00000000
-    dw `00000000
-    dw `00000000
-    dw `00000000
-    
-    dw `11111111
-    dw `11111111
-    dw `11111111
-    dw `11111111
     dw `11111111
     dw `11111111
     dw `11111111
@@ -229,32 +248,68 @@ BackgroundTileData:
     dw `22222222
     dw `22222222
     dw `22222222
+    dw `11111111
+    dw `11111111
+    dw `11111111
+    dw `11111111
+    
+    dw `11111111
+    dw `11111111
+    dw `11111111
+    dw `11111111
     dw `22222222
     dw `22222222
     dw `22222222
     dw `22222222
+
+    dw `22222222
+    dw `22222222
+    dw `22222222
+    dw `22222222
+    dw `22222222
+    dw `22222222
+    dw `22222222
+    dw `22222222
+    
+    dw `11111111
+    dw `11111111
+    dw `11111111
+    dw `11111111
+    dw `11111111
+    dw `11111111
+    dw `11111111
+    dw `11111111
 .end
 
-DEF OBJ0_Y EQU 20
-DEF OBJ1_Y EQU 40
-DEF OBJ2_Y EQU 60
-DEF OBJ3_Y EQU 80
-DEF OBJ4_Y EQU 100
+DEF OBJ0_Y EQU $10
+DEF OBJ1_Y EQU $20
+DEF OBJ2_Y EQU $30
+DEF OBJ3_Y EQU $40
+DEF OBJ4_Y EQU $50
+DEF OBJ5_Y EQU $60
+DEF OBJ6_Y EQU $70
+DEF OBJ7_Y EQU $80
 
 OAM_LYC_PIPELINE:
-    db 0
+    db OBJ0_Y - 16
     db OBJ1_Y - 16
     db OBJ2_Y - 16
     db OBJ3_Y - 16
     db OBJ4_Y - 16
+    db OBJ5_Y - 16
+    db OBJ6_Y - 16
+    db OBJ7_Y - 16
 .end
 
 STAT_INTERRUPT_PIPELINE:
-    dw StatInterruptHandlerInit
+    dw StatInterruptHandlerObj0Start
     dw StatInterruptHandlerObj1Start
     dw StatInterruptHandlerObj2Start
     dw StatInterruptHandlerObj3Start
     dw StatInterruptHandlerObj4Start
+    dw StatInterruptHandlerObj5Start
+    dw StatInterruptHandlerObj6Start
+    dw StatInterruptHandlerObj7Start
 .end
 
 ; Asserting that the pipelines are the same length
@@ -269,7 +324,7 @@ AdvancePipeline:
         ld c, 0     ; reset the counter in case of overflow
     
     ; update hl register with the next callback address and LYC with the next LYC value
-.exit
+    .exit
     ld b, 0
     push bc     ; save the counter (c) in order to use bc in next statements
     ; multiply c by 2
@@ -296,9 +351,20 @@ AdvancePipeline:
     ret
 
 OAMData:
-    db OBJ0_Y, 20, 1, 0   ; object 0 - OAM color 1 on bg color 0 with all the priorities set
-    db OBJ1_Y, 20, 2, 0   ; object 1 - OAM color 2 on bg color 1 with all the priorities set
-    db OBJ2_Y, 20, 1, 0   ; object 2 - OAM color 1 on bg color 1 with the bg priority and the oam priority (bg master priority is off)
-    db OBJ3_Y, 20, 2, $80 ; object 3 - OAM color 2 on bg color 1 with the oam priority off and the bg priority off (bg master priority is on)
-    db OBJ4_Y, 20, 1, 0   ; object 4 - OAM color 2 on bg color 0 with the oam priority off and the bg priorities on (master and regualr)
+    ; OAM - on | BG - on | BGM - on
+    db OBJ0_Y, 40, 2, 0   ; object 0 - OAM color 2/1 on bg color 0/1 with all the priorities set - bg color 1 is visible
+    ; OAM - on | BG - on | BGM - off
+    db OBJ1_Y, 40, 4, 0   ; object 1 - OAM color 1 on bg color 0/1 with the bg priority and the oam priority (bg master priority is off) - oam is visible
+    ; OAM - off| BG - off| BGM - on
+    db OBJ2_Y, 40, 2, $80 ; object 2 - OAM color 1/2 on bg color 0/1 with the oam priority off and the bg priority off (bg master priority is on)
+    ; OAM - off| BG - on | BGM - on
+    db OBJ3_Y, 40, 2, $80 ; object 3 - OAM color 2/1 on bg color 0/1 with the oam priority off and the bg priorities on (master and regualr)
+    ; OAM - on | BG - off| BGM - on
+    db OBJ4_Y, 40, 4, 0   ; object 4
+    ; OAM - on | BG - off| BGM - off
+    db OBJ5_Y, 40, 4, 0   ; object 5
+    ; OAM - off| BG - on | BGM - off
+    db OBJ6_Y, 40, 4, $80 ; object 6
+    ; OAM - off| BG - off| BGM - off
+    db OBJ7_Y, 40, 4, $80 ; object 7
 .end
