@@ -14,7 +14,8 @@ FIXFLAGS = -C -v -m 0 -p 0  # v - equlivant to -f lhg that fixes some header val
 							  m - cartrigde type, p - pad value \
 							  C - for CGB only
 
-SRC_FILE = src/color_bg_oam_priority.asm
+SRC_DIR = src
+SRC_FILE = $(SRC_DIR)/color_bg_oam_priority.asm
 TARGET = testcolor
 
 $(TARGET).gbc: $(TARGET).o
@@ -22,7 +23,7 @@ $(TARGET).gbc: $(TARGET).o
 	$(RGBFIX) $(FIXFLAGS) $@
 
 $(TARGET).o: $(SRC_FILE)
-	$(RGBASM) -o $@ $^
+	$(RGBASM) -i $(SRC_DIR) -o $@ $^
 
 .PHONY: clean
 clean:

@@ -1,3 +1,6 @@
+SECTION "graphics_data", ROM0
+INCLUDE "graphics_data.asm"
+
 DEF VRAM_TILE_DATA_START_ADDRESS EQU $8000
 DEF VRAM_TILE_MAP0_START_ADDRESS EQU $9800
 DEF VRAM_TILE_MAP1_START_ADDRESS EQU $9C00
@@ -234,87 +237,6 @@ Memcpy:
     jr nz, Memcpy
     ret
 
-TileData:
-    dw `00000000
-    dw `00000000
-    dw `00000000
-    dw `00000000
-    dw `11111111
-    dw `11111111
-    dw `11111111
-    dw `11111111
-    
-    dw `22222222
-    dw `22222222
-    dw `22222222
-    dw `22222222
-    dw `11111111
-    dw `11111111
-    dw `11111111
-    dw `11111111
-    
-    dw `11111111
-    dw `11111111
-    dw `11111111
-    dw `11111111
-    dw `22222222
-    dw `22222222
-    dw `22222222
-    dw `22222222
-
-    dw `22222222
-    dw `22222222
-    dw `22222222
-    dw `22222222
-    dw `22222222
-    dw `22222222
-    dw `22222222
-    dw `22222222
-    
-    dw `11111111
-    dw `11111111
-    dw `11111111
-    dw `11111111
-    dw `11111111
-    dw `11111111
-    dw `11111111
-    dw `11111111
-.end
-
-DEF OBJ0_Y EQU $10
-DEF OBJ1_Y EQU $20
-DEF OBJ2_Y EQU $30
-DEF OBJ3_Y EQU $40
-DEF OBJ4_Y EQU $50
-DEF OBJ5_Y EQU $60
-DEF OBJ6_Y EQU $70
-DEF OBJ7_Y EQU $80
-
-OAM_LYC_PIPELINE:
-    db OBJ0_Y - 16
-    db OBJ1_Y - 16
-    db OBJ2_Y - 16
-    db OBJ3_Y - 16
-    db OBJ4_Y - 16
-    db OBJ5_Y - 16
-    db OBJ6_Y - 16
-    db OBJ7_Y - 16
-.end
-
-STAT_INTERRUPT_PIPELINE:
-    dw StatInterruptHandlerObj0Start
-    dw StatInterruptHandlerObj1Start
-    dw StatInterruptHandlerObj2Start
-    dw StatInterruptHandlerObj3Start
-    dw StatInterruptHandlerObj4Start
-    dw StatInterruptHandlerObj5Start
-    dw StatInterruptHandlerObj6Start
-    dw StatInterruptHandlerObj7Start
-.end
-
-; Asserting that the pipelines are the same length
-STATIC_ASSERT (STAT_INTERRUPT_PIPELINE.end - STAT_INTERRUPT_PIPELINE) / 2 == OAM_LYC_PIPELINE.end - OAM_LYC_PIPELINE, "STAT_INTERRUPT pipeline is not compatible with the OAM_LYC pipeline"
-
 AdvancePipeline:
     ; increment and check for overflow
     inc c
@@ -350,21 +272,27 @@ AdvancePipeline:
     ld l, e
     ret
 
-OAMData:
-    ; OAM - on | BG - on | BGM - on
-    db OBJ0_Y, 40, 2, 0   ; object 0 - OAM color 2/1 on bg color 0/1 with all the priorities set - bg color 1 is visible
-    ; OAM - on | BG - on | BGM - off
-    db OBJ1_Y, 40, 4, 0   ; object 1 - OAM color 1 on bg color 0/1 with the bg priority and the oam priority (bg master priority is off) - oam is visible
-    ; OAM - off| BG - off| BGM - on
-    db OBJ2_Y, 40, 2, $80 ; object 2 - OAM color 1/2 on bg color 0/1 with the oam priority off and the bg priority off (bg master priority is on)
-    ; OAM - off| BG - on | BGM - on
-    db OBJ3_Y, 40, 2, $80 ; object 3 - OAM color 2/1 on bg color 0/1 with the oam priority off and the bg priorities on (master and regualr)
-    ; OAM - on | BG - off| BGM - on
-    db OBJ4_Y, 40, 4, 0   ; object 4
-    ; OAM - on | BG - off| BGM - off
-    db OBJ5_Y, 40, 4, 0   ; object 5
-    ; OAM - off| BG - on | BGM - off
-    db OBJ6_Y, 40, 4, $80 ; object 6
-    ; OAM - off| BG - off| BGM - off
-    db OBJ7_Y, 40, 4, $80 ; object 7
+OAM_LYC_PIPELINE:
+    db OBJ0_Y - 16
+    db OBJ1_Y - 16
+    db OBJ2_Y - 16
+    db OBJ3_Y - 16
+    db OBJ4_Y - 16
+    db OBJ5_Y - 16
+    db OBJ6_Y - 16
+    db OBJ7_Y - 16
 .end
+
+STAT_INTERRUPT_PIPELINE:
+    dw StatInterruptHandlerObj0Start
+    dw StatInterruptHandlerObj1Start
+    dw StatInterruptHandlerObj2Start
+    dw StatInterruptHandlerObj3Start
+    dw StatInterruptHandlerObj4Start
+    dw StatInterruptHandlerObj5Start
+    dw StatInterruptHandlerObj6Start
+    dw StatInterruptHandlerObj7Start
+.end
+
+; Asserting that the pipelines are the same length
+STATIC_ASSERT (STAT_INTERRUPT_PIPELINE.end - STAT_INTERRUPT_PIPELINE) / 2 == OAM_LYC_PIPELINE.end - OAM_LYC_PIPELINE, "STAT_INTERRUPT pipeline is not compatible with the OAM_LYC pipeline"
