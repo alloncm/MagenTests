@@ -1,6 +1,11 @@
 # MagenTests
 
-Collection of test roms to check edge cases in the Gameboy and Gameboy Color during the development of my emulator - [MagenBoy](https://github.com/alloncm/MagenBoy)
+Collection of test roms to check and verify the behavior of the Gameboy Color during the development of my emulator - [MagenBoy](https://github.com/alloncm/MagenBoy)
+
+## Why only Gameboy Color?
+
+Well during the development of MagenBoy (My gameboy emulator) I found plenty of test roms and information about the original Gameboy (DMG).\
+Unfortuntly, now when adding support for the Gameboy Color (CGB) I had a hard time finding all the information online so I decided to try and test it myself
  
 ## ColorBgOamPriority
 
@@ -12,7 +17,7 @@ The gameboy color has 3 different places where the priority between the Backgrou
 
 3. BG Map Attribute bit 7 - in color we got Tile attributes for the BG too, according to The pandocs setting this bit should ignore the OAM priority bit, which not always the case - [source](https://gbdev.io/pandocs/Tile_Maps.html#bg-map-attributes-cgb-mode-only)
 
-After trying to implement this behavior I noticed that this is not the whole picture and there are a few edge cases not convered.
+After trying to implement this behavior I noticed that this is not the whole picture and there are a few edge cases not covered.
 
 ### Expected behavior
 OAM - OAM priority bit\
@@ -41,4 +46,4 @@ You should see 5 green squares and 3 half grren and half blue squares with no re
 ![image](https://user-images.githubusercontent.com/25867720/163681645-5a5a7fdf-98a8-4042-8b34-4a6b0e2f01fe.png)
 
 ## Original hardware
-Unfortuntly I dont have access to original Gameboy Color so the tests have been done against the BGB emulator
+Unfortuntly I dont have access to original Gameboy Color so the tests have been done against the BGB emulator in the Gameboy Color mode
