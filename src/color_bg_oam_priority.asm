@@ -2,6 +2,9 @@ SECTION "graphics_data", ROM0
 INCLUDE "graphics_data.asm"
 INCLUDE "hardware.inc"
 
+SECTION "std", ROM0
+INCLUDE "common.asm"
+
 SECTION "stat interrupt", ROM0[$48]
     jp hl
 
@@ -15,11 +18,11 @@ Main::
     di ; no need for interrupts for now
 
     ; turn lcd off - must be done during vblank mode
-    .wait_for_vbalnk
-        ld a, [rSTAT]
-        and a, %11  ; get only the mode flag
-        cp a, 1     ; 1 is the vblank status
-        jr nz, .wait_for_vbalnk
+.wait_for_vbalnk
+    ld a, [rSTAT]
+    and a, %11  ; get only the mode flag
+    cp a, 1     ; 1 is the vblank status
+    jr nz, .wait_for_vbalnk
     ld a, 0
     ld [rLCDC], a
 
@@ -32,11 +35,12 @@ Main::
     ld bc, $400 ; tile map size
     ld a, 0 ; tile number to use
     call Memset
-    
+
+    ; Copy screen 0 to 1
     ld hl, _SCRN1
-    ld bc, $400
-    ld a, 0 ; tile number to use
-    call Memset
+    ld bc, _SCRN0
+    ld de, $400 
+    call Memcpy
 
     ; set vram bank to 1
     ld a, 1 
@@ -47,10 +51,41 @@ Main::
     ld a, 0 ; bg priority off, bg pallete 0
     call Memset
     
+    ; INDEX - (Y * 32) + X
+    ld b, (BG_MAP_TILES_INDEX.end - BG_MAP_TILES_INDEX)
+    ld c, 0
+.set_screen_map
+    push bc
+    ld b, 0
+    ld hl, BG_MAP_TILES_INDEX
+    add hl, bc
+    ld l, [hl]
+    ld h, 0
+    ld a, 32
+    call Mulu8
+    ld de, ((OBJ_X_OFFSET - 1) / 8) + _SCRN0
+    add hl, de
+    ld [hl], 1 ; set the screen map
+    pop bc
+    inc c
+    ld a, b
+    cp a, c
+    jr nz, .set_screen_map
+
     ld hl, _SCRN1
-    ld bc, $400
-    ld a, %10000000 ; bg priority on, bg pallete 0
-    call Memset
+    ld bc, _SCRN0
+    ld de, $400
+    call Memcpy
+ 
+    ld hl, _SCRN1
+    ld bc, 0
+.set_screen_map_priority   
+    set 7, [hl]
+    inc hl
+    inc bc
+    ld a, b
+    cp a, 4 ; second byte of $400
+    jr nz, .set_screen_map_priority
 
     ; set vram bank to 0
     ld a, 0
@@ -62,25 +97,35 @@ Main::
     call Memcpy
 
     ; palletes
-    ; BG pallete - set color 1 of pallete 0 to black
-    ld d, 2 ; color index
-    ld e, 1 ; BG
-    ld bc, $0000 ; black
-    call LoadPallete
     ; BG pallete - set color 0 of pallete 0 to black
     ld d, 0 ; color index
     ld e, 1 ; BG
-    ld bc, $0000 ; black
+    ld bc, BLACK
+    call LoadPallete
+    ; BG pallete - set color 1 of pallete 0 to black
+    ld d, 2 ; color index
+    ld e, 1 ; BG
+    ld bc, BLACK
+    call LoadPallete
+    ; BG pallete - set color 0 of pallete 1 to black
+    ld d, 8 ; color index
+    ld e, 1 ; BG
+    ld bc, BLUE
+    call LoadPallete
+    ; BG pallete - set color 1 of pallete 1 to black
+    ld d, 10 ; color index
+    ld e, 1 ; BG
+    ld bc, BLUE
     call LoadPallete
 
     ld d, 2 ; color index
     ld e, 0 ; OAM
-    ld bc, $03E0 ; green
+    ld bc, GREEN
     call LoadPallete
     
     ld d, 4 ; color index
     ld e, 0 ; OAM
-    ld bc, $001F ; red
+    ld bc, RED
     call LoadPallete
 
     ld a, %10010011 ; turn lcd on, with the correct flags
@@ -185,42 +230,6 @@ StatInterruptHandlerObj7Start:
     call AdvancePipeline
     reti
 
-; mut hl - dst (address to set)
-; mut bc - len (non zero length)
-; const a - val (value to set)
-Memset:
-    ldi [hl], a
-    dec bc
-    ; detect if bc is zero and return if so
-    ld d, a     ; saves a 
-    xor a
-    cp a, c
-    jr nz, .continue
-    cp a, b
-    jr nz, .continue
-
-    ld a, d     ; loads a
-    ret
-    .continue:
-        ld a, d ; loads a
-        jr Memset
-
-; mut hl - dst (address to copy to)
-; mut bc - src (adress to copy from)
-; mut de - len (length of src to copy to dst)
-Memcpy:
-    ld a, [bc]
-    inc bc
-    ldi [hl], a
-    dec de
-    ; detect if de is zero
-    xor a
-    cp a, e
-    jr nz, Memcpy
-    cp a, d
-    jr nz, Memcpy
-    ret
-
 AdvancePipeline:
     ; increment and check for overflow
     inc c
@@ -255,6 +264,17 @@ AdvancePipeline:
     ld h, d
     ld l, e
     ret
+
+BG_MAP_TILES_INDEX:
+    db (OBJ0_Y - 16) / 8
+    db (OBJ1_Y - 16) / 8
+    db (OBJ2_Y - 16) / 8
+    db (OBJ3_Y - 16) / 8
+    db (OBJ4_Y - 16) / 8
+    db (OBJ5_Y - 16) / 8
+    db (OBJ6_Y - 16) / 8
+    db (OBJ7_Y - 16) / 8
+.end
 
 OAM_LYC_PIPELINE:
     db OBJ0_Y - 16
