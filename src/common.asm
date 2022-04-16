@@ -1,6 +1,9 @@
+;----------------------------------------------------
+; Memory set:
 ; mut hl - dst (address to set)
 ; mut bc - len (non zero length)
 ; const a - val (value to set)
+;----------------------------------------------------
 Memset:
     ldi [hl], a
     dec bc
@@ -18,9 +21,12 @@ Memset:
         ld a, d ; loads a
         jr Memset
 
+;----------------------------------------------------
+; Memory copy:
 ; mut hl - dst (address to copy to)
 ; mut bc - src (adress to copy from)
 ; mut de - len (length of src to copy to dst)
+;----------------------------------------------------
 Memcpy:
     ld a, [bc]
     inc bc
@@ -33,10 +39,12 @@ Memcpy:
     cp a, d
     jr nz, Memcpy
     ret
-
+;----------------------------------------------------
+; Multiply unsined 8 bit int by unsigned 16 bit int
 ; mut hl - value to operate on
 ; mut a - value to multiply with
 ; hl = hl * a
+;----------------------------------------------------
 Mulu8:
     push de
     ld d, h
