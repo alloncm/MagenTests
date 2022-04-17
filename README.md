@@ -46,4 +46,6 @@ You should see 5 green squares and 3 half grren and half blue squares with no re
 ![image](https://user-images.githubusercontent.com/25867720/163681645-5a5a7fdf-98a8-4042-8b34-4a6b0e2f01fe.png)
 
 ## Original hardware
-Unfortuntly I dont have access to original Gameboy Color so the tests have been done against the BGB emulator in the Gameboy Color mode
+Unfortuntly I dont have access to original Gameboy Color so the tests have been done against the following emulators:
+* BGB emulator in the Gameboy Color mode
+* Sameboy in the Gameboy Color mode
