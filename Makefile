@@ -17,7 +17,7 @@ HARDWAREINC_PATH = hardware.inc/
 
 SRC_DIR = src
 SRC_FILE = $(SRC_DIR)/color_bg_oam_priority.asm
-TARGET = testcolor
+TARGET =  bg_oam_priority
 
 $(TARGET).gbc: $(TARGET).o
 	$(RGBLINK) -o $@ $^
