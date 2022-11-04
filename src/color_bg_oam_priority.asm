@@ -88,23 +88,23 @@ Main::
 
     ld d, 0                                             ; color index
     ld e, 1                                             ; BG
-    ld bc, BLACK
-    call LoadPallete                                    ; BG pallete - set color 0 of pallete 0 to black
+    ld bc, WHITE
+    call LoadPallete                                    ; BG pallete - set color 0 of pallete 0 to white
     
     ld d, 2                                             ; color index
     ld e, 1                                             ; BG
-    ld bc, BLACK
-    call LoadPallete                                    ; BG pallete - set color 1 of pallete 0 to black
+    ld bc, WHITE
+    call LoadPallete                                    ; BG pallete - set color 1 of pallete 0 to white
 
     ld d, 8                                             ; color index
     ld e, 1                                             ; BG
     ld bc, BLUE
-    call LoadPallete                                    ; BG pallete - set color 0 of pallete 1 to black
+    call LoadPallete                                    ; BG pallete - set color 0 of pallete 1 to white
     
     ld d, 10                                            ; color index
     ld e, 1                                             ; BG
     ld bc, BLUE
-    call LoadPallete                                    ; BG pallete - set color 1 of pallete 1 to black
+    call LoadPallete                                    ; BG pallete - set color 1 of pallete 1 to white
 
     ld d, 2                                             ; color index
     ld e, 0                                             ; OAM

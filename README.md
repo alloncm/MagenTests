@@ -38,10 +38,9 @@ Colors:
 ### Test result
 You should see 5 green squares and 3 half grren and half blue squares with no red lines
 
-##### Example:
-![image](images/expceted.png)
+#### Example:
+![image](images/hardware_screenshot.jpg)
 
-## Original hardware
-Unfortuntly I dont have access to original Gameboy Color so the tests have been done against the following emulators:
-* BGB emulator in the Gameboy Color mode
-* Sameboy in the Gameboy Color mode
+#### Original hardware
+
+Special thanks to [ISSOtm](https://github.com/ISSOtm) for running this test rom on original hardware, verifying it actually works and screenshoting the result.
