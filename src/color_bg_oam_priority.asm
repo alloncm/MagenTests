@@ -152,6 +152,9 @@ WaitVblank:
 ; Turn off the LCD display
 ;----------------------------------------------------
 TurnOffLcd:
+    and a, %10000000                                    ; get LCDC bit 7 to check if lcd is off
+    cp a, 0                                             ; check lcdc for lcd off
+    ret z                                               ; if lcd already off return and dont wait for vblank (it will never return)
     call WaitVblank
     ld a, 0
     ld [rLCDC], a
