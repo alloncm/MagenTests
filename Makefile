@@ -15,16 +15,15 @@ FIXFLAGS = -C -v -m 0 -p 0  # v - equlivant to -f lhg that fixes some header val
 							  C - for CGB only
 HARDWAREINC_PATH = hardware.inc/
 
-SRC_DIR = src
-SRC_FILE = $(SRC_DIR)/color_bg_oam_priority.asm
-TARGET =  bg_oam_priority
+define create_target = 
+	$(RGBASM) -i $(2) -i $(HARDWAREINC_PATH) -o $(1).o $(2)/main.asm
+	$(RGBLINK) -o $(1).gbc $(1).o
+	$(RGBFIX) $(FIXFLAGS) $(1).gbc
+endef
 
-$(TARGET).gbc: $(TARGET).o
-	$(RGBLINK) -o $@ $^
-	$(RGBFIX) $(FIXFLAGS) $@
-
-$(TARGET).o: $(SRC_FILE)
-	$(RGBASM) -i $(SRC_DIR) -i $(HARDWAREINC_PATH) -o $@ $^
+all:
+	$(call create_target,bg_oam_priority,src/color_bg_oam_priority)
+	$(call create_target,oam_internal_priority,src/oam_internal_priority)
 
 .PHONY: clean
 clean:

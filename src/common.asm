@@ -59,3 +59,52 @@ Mulu8:
 .exit
     pop de
     ret
+
+;----------------------------------------------------
+; Wait for Vblank
+; Wait untill the STAT register shows vblank status
+;----------------------------------------------------
+WaitVblank:
+    ld a, [rSTAT]
+    and a, %11                                          ; get only the mode flag
+    cp a, 1                                             ; check for 1 (the vblank status)
+    jr nz, WaitVblank
+    ret
+
+;----------------------------------------------------
+; Turn off the LCD display
+;----------------------------------------------------
+TurnOffLcd:
+    ld a, [rLCDC]
+    and a, %10000000                                    ; get LCDC bit 7 to check if lcd is off
+    cp a, 0                                             ; check lcdc for lcd off
+    ret z                                               ; if lcd already off return and dont wait for vblank (it will never return)
+    call WaitVblank
+    ld a, 0
+    ld [rLCDC], a
+    ret
+
+;----------------------------------------------------
+; Laod a pallete color with a color 
+; mut d - color index
+; const e - oam or bg (0 for oam, 1 for bg)
+; const bc - color
+;----------------------------------------------------
+LoadPallete:
+    ld a, d
+    set 7, a                                            ; in order for the pallete pointer to auto increment
+    bit 0, e                                            ; check if 0 (oam) or 1 (bg)
+    jr z, .oam_pallete
+.bg_pallete
+    ld [rBCPS], a
+    ld a, c
+    ld [rBCPD], a
+    ld a, b
+    ld [rBCPD], a
+.oam_pallete
+    ld [rOCPS], a
+    ld a, c
+    ld [rOCPD], a
+    ld a, b
+    ld [rOCPD], a
+    ret
