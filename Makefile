@@ -1,7 +1,3 @@
-RGBASM = rgbasm
-RGBLINK = rgblink
-RGBFIX = rgbfix
-
 RM_F =
 ifeq ($(OS), Windows_NT)
 	RM_F = Del
@@ -9,22 +5,23 @@ else
 	RM_F = rm -f
 endif
 
-ASMFLAGS = -L				# L - disable optimiziations
-FIXFLAGS = -C -v -m 0 -p 0  # v - equlivant to -f lhg that fixes some header values \
-							  m - cartrigde type, p - pad value \
-							  C - for CGB only
-HARDWAREINC_PATH = hardware.inc/
+# L - disable optimiziations
+ASMFLAGS = -L
 
-SRC_DIR = src
-SRC_FILE = $(SRC_DIR)/color_bg_oam_priority.asm
-TARGET =  bg_oam_priority
+# v - equlivant to -f lhg that fixes some header values
+# m - cartrigde type, p - pad value
+# C - for CGB only
+FIXFLAGS = -C -v -m 0 -p 0
 
-$(TARGET).gbc: $(TARGET).o
-	$(RGBLINK) -o $@ $^
-	$(RGBFIX) $(FIXFLAGS) $@
+define create_target = 
+	rgbasm $(ASMFLAGS) -i $(2) -i hardware.inc/ -o $(1).o $(2)/main.asm
+	rgblink -o $(1).gbc $(1).o
+	rgbfix $(FIXFLAGS) $(1).gbc
+endef
 
-$(TARGET).o: $(SRC_FILE)
-	$(RGBASM) -i $(SRC_DIR) -i $(HARDWAREINC_PATH) -o $@ $^
+all:
+	$(call create_target, bg_oam_priority, src/color_bg_oam_priority)
+	$(call create_target, oam_internal_priority, src/oam_internal_priority)
 
 .PHONY: clean
 clean:
