@@ -138,7 +138,6 @@ Main::
     jp .loop                                            ; wait for interrupts
 
 ;----------------------------------------------------
-    ld a, [rLCDC]
 ; All the stat interrupt handlers - one for each 
 ; OAM object (pipeline)
 ;----------------------------------------------------
