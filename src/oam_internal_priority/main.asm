@@ -46,12 +46,12 @@ Main::
 
     ; set up palletes
     ld d, 2                                             ; color index
-    ld e, 1                                             ; BG
+    ld e, BG_PALLETE
     ld bc, WHITE
     call LoadPallete                                    ; BG pallete - set color 1 of pallete 0 
     
     ld d, 2                                             ; color index
-    ld e, 0                                             ; OAM
+    ld e, OAM_PALLETE
     ld bc, GREEN
     call LoadPallete                                    ; OAM pallete - set color 1 of pallete 0
     

@@ -90,21 +90,24 @@ TurnOffLcd:
 ; const e - oam or bg (0 for oam, 1 for bg)
 ; const bc - color
 ;----------------------------------------------------
+DEF OAM_PALLETE EQU 0
+DEF BG_PALLETE EQU 1
 LoadPallete:
+    push hl
+    ld a, e
+    cp a, OAM_PALLETE
+    jr z, .oam_pallete
+    ld hl, rBCPS                                        ; set hl to point the bg register
+    jr .load_data
+.oam_pallete
+    ld hl, rOCPS                                        ; set hl to point the oam register
+.load_data
     ld a, d
     set 7, a                                            ; in order for the pallete pointer to auto increment
-    bit 0, e                                            ; check if 0 (oam) or 1 (bg)
-    jr z, .oam_pallete
-.bg_pallete
-    ld [rBCPS], a
+    ldi [hl], a                                         ; set control register and increment hl to the data register
     ld a, c
-    ld [rBCPD], a
+    ld [hl], a
     ld a, b
-    ld [rBCPD], a
-.oam_pallete
-    ld [rOCPS], a
-    ld a, c
-    ld [rOCPD], a
-    ld a, b
-    ld [rOCPD], a
+    ld [hl], a
+    pop hl
     ret

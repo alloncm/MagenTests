@@ -38,4 +38,7 @@ OAMData:
     ; Y, X, Tile, attr
     db 40, 46, 2, 0
     db 40, 40, 1, 0
+    
+    db 60, 40, 1, 0
+    db 60, 46, 2, 0
 .end
