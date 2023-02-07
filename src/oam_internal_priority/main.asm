@@ -1,6 +1,7 @@
+INCLUDE "hardware.inc"
+
 SECTION "graphics_data", ROM0
 INCLUDE "graphics_data.asm"
-INCLUDE "hardware.inc"
 
 SECTION "std", ROM0
 INCLUDE "../common.asm"
