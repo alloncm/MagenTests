@@ -1,8 +1,3 @@
-; Colors definition
-DEF WHITE   EQU $FFFF
-DEF RED     EQU $001F
-DEF GREEN   EQU $03E0
-
 TileData:
     ; bg tile
     dw `11111111

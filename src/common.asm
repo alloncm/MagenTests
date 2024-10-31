@@ -1,3 +1,9 @@
+; Colors definition
+DEF WHITE   EQU $FFFF
+DEF RED     EQU $001F
+DEF GREEN   EQU $03E0
+DEF BLUE    EQU $7C00
+
 ;----------------------------------------------------
 ; Memory set:
 ; mut hl - dst (address to set)
@@ -17,9 +23,9 @@ Memset:
 
     ld a, d     ; loads a
     ret
-    .continue:
-        ld a, d ; loads a
-        jr Memset
+.continue:
+    ld a, d ; loads a
+    jr Memset
 
 ;----------------------------------------------------
 ; Memory copy:
@@ -85,7 +91,7 @@ TurnOffLcd:
     ret
 
 ;----------------------------------------------------
-; Laod a pallete color with a color 
+; Load a pallete color with a color 
 ; mut d - color index
 ; const e - oam or bg (0 for oam, 1 for bg)
 ; const bc - color

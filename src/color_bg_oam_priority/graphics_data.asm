@@ -9,12 +9,6 @@ DEF OBJ7_Y EQU $80
 
 DEF OBJ_X_OFFSET EQU 40
 
-; Colors definition
-DEF WHITE   EQU $FFFF
-DEF RED     EQU $001F
-DEF GREEN   EQU $03E0
-DEF BLUE    EQU $7C00
-
 TileData:
     dw `00000000
     dw `00000000

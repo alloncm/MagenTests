@@ -1,10 +1,7 @@
 # MagenTests
+
 Collection of test roms to check and verify the behavior of the Gameboy Color during the development of my emulator - [MagenBoy](https://github.com/alloncm/MagenBoy)
 
-## Why only Gameboy Color?
-Well during the development of MagenBoy (My gameboy emulator) I found plenty of test roms and information about the original Gameboy (DMG).\
-Unfortuntly, now when adding support for the Gameboy Color (CGB) I had a hard time finding all the information online so I decided to try and test it myself
- 
 ## ColorBgOamPriority
 
 The gameboy color has 3 different places where the priority between the Background layer and the OAM a layer can be declared.
@@ -40,3 +37,24 @@ You should see 2 pairs of rectangles connected or touching each other.
 #### Expected result
 
 ![image](images/oam_internal_priority_expected_sameboy.png)
+
+## Vram DMA HBlank mode
+
+This peripheral was added in the GameBoy Color and the HBlank mode turns out to be a bit tricky.
+
+For more info check the [PanDocs](https://gbdev.io/pandocs/CGB_Registers.html#lcd-vram-dma-transfers).
+
+One undocumented detail I found is that the HDMA HBlank should be halted when the CPU is halted.
+
+### Test result
+
+The screen should be all green!
+
+Errors 
+- Red screen - HDMA HBlank operation have been executed succesfully 
+- Blue screen - HDMA HBlank operation have been executed even tought the CPU is halted
+
+
+#### Expected result
+
+![image](images/expected_green_screen.png)
