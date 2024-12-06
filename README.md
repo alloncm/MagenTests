@@ -54,6 +54,21 @@ Errors
 - Red screen - HDMA HBlank operation have been executed succesfully 
 - Blue screen - HDMA HBlank operation have been executed even tought the CPU is halted
 
+#### Expected result
+
+![image](images/expected_green_screen.png)
+
+## KEY0 (CPU mode register) Lock After Boot
+
+This register is CGB only and controls the mode of the system, mainly for compatibality with old DMG carts.
+
+This register is being writen by the bootrom and get locked after 0xFF50 is written to.
+
+For more info check [this link](https://forums.nesdev.org/viewtopic.php?p=248353&sid=693346db893528869f0907b1d5008897#p248353)
+
+### Test result
+
+The screen should be all green!
 
 #### Expected result
 
