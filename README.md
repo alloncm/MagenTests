@@ -64,8 +64,6 @@ This register is CGB only and controls the mode of the system, mainly for compat
 
 This register is being writen by the bootrom and get locked after 0xFF50 is written to.
 
-For more info check [this link](https://forums.nesdev.org/viewtopic.php?p=248353&sid=693346db893528869f0907b1d5008897#p248353)
-
 ### Test result
 
 The screen should be all green!
