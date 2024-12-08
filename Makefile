@@ -23,6 +23,7 @@ all:
 	$(call create_target, bg_oam_priority, src/color_bg_oam_priority)
 	$(call create_target, oam_internal_priority, src/oam_internal_priority)
 	$(call create_target, hblank_vram_dma, src/hblank_vram_dma)
+	$(call create_target, key0_lock_after_boot, src/key0_lock_after_boot)
 
 .PHONY: clean
 clean:
