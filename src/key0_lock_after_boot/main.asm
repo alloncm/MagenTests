@@ -15,7 +15,7 @@ Main::
     di                                                ; no need for interrupts for now
     ld sp, $FFFE                                      ; setup the stack
     
-    call TurnOffLcd                                   ; To avoid failed writes to the vram gets locked
+    call TurnOffLcd                                   ; To prevent failed writes to the vram when it gets locked
 
     ; Copy tiles to VRAM
     ld hl, _VRAM 
