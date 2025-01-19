@@ -1,6 +1,6 @@
 # MagenTests
 
-Collection of test roms to check and verify the behavior of the Gameboy Color during the development of my emulator - [MagenBoy](https://github.com/alloncm/MagenBoy)
+Collection of test roms to check and verify the behavior of the Gameboy (mostly Color) during the development of my emulator - [MagenBoy](https://github.com/alloncm/MagenBoy)
 
 ## ColorBgOamPriority
 
@@ -67,6 +67,16 @@ This register is being writen by the bootrom and get locked after 0xFF50 is writ
 ### Test result
 
 The screen should be all green!
+
+## STAT register PPU mode upon PPU disabled
+
+When the PPU is off (LCDC bit 7 is clear) the mode reported by STAT should be set to HBLANK mode (0).
+
+This test is valid for both DMG and CGB machines.
+
+### Test result
+
+The screen should be all green! (On DMG White)
 
 #### Expected result
 

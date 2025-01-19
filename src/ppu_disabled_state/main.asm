@@ -41,24 +41,30 @@ Main::
     ld a, 0
     ld [rVBK], a
 
-    ; Load palettes
-    ld bc, GREEN
+    ; Lcd turned off at vblank mode (mode 1) and now suposed to be at hblank (mode 0)
+    ld a, [rSTAT]
+    and a, %11      ; Read only the ppu mode
+    jr nz, .fail    ; If ppu mode is not hblank (mode 0) set error
+    ld bc, GREEN    ; Else setting bc to green to indicate success
+    ld a, 0         ; And setting a to white (for DMG machines)
+    jr .set_output
+.fail
+    ld bc, RED      ; Setting bc to red indicating failure
+    ld a, 3         ; And setting a to black (for DMG machines)
+.set_output
+    ; bc contains the palette color we would use
     ld d, 2                                             ; palette 0 color 1
     ld e, 1                                             ; BG
     call LoadPallete
+    ; a contains DMG compatible color, setting color 1
+    ; a << 2 in order to set color 1 with the value
+    sla a
+    sla a
+    ld [rBGP], a
 
-    ; Lcd turned off at vblank mode (mode 1) and now suposed to be at hblank (mode 0)
-    ld a, [rSTAT]
-    and a, 3
-    jr nz, .error
-    ld a, "A"
-    jr .print
-.error
-    ld a, "B"
-.print
-    ld [rSB], a
+    ; Turn lcd on, with the correct flags to see the result
+    ld a, LCDCF_ON|LCDCF_BG8000|LCDCF_BGON|LCDCF_BG9800
+    ld [rLCDC], a
 .loop
-    ld a, [rLY]
-    ld [rSB], a
     ; halt
     jp .loop

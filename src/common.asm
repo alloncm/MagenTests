@@ -100,6 +100,7 @@ DEF OAM_PALLETE EQU 0
 DEF BG_PALLETE EQU 1
 LoadPallete:
     push hl
+    push af
     ld a, e
     cp a, OAM_PALLETE
     jr z, .oam_pallete
@@ -115,5 +116,6 @@ LoadPallete:
     ld [hl], a
     ld a, b
     ld [hl], a
+    pop af
     pop hl
     ret
