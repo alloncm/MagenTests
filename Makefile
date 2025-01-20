@@ -24,12 +24,9 @@ define create_target =
 endef
 
 all:
-	$(call create_target, bg_oam_priority, src/color_bg_oam_priority, $(COLORONLY))
-	$(call create_target, oam_internal_priority, src/oam_internal_priority, $(COLORONLY))
-	$(call create_target, hblank_vram_dma, src/hblank_vram_dma, $(COLORONLY))
-	$(call create_target, key0_lock_after_boot, src/key0_lock_after_boot, $(COLORONLY))
-	$(call create_target, ppu_disabled_state, src/ppu_disabled_state, $(COLORCOMP))
-
-.PHONY: clean
-clean:
-	$(RM_F) *.o
+	mkdir -p build
+	$(call create_target, build/bg_oam_priority, src/color_bg_oam_priority, $(COLORONLY))
+	$(call create_target, build/oam_internal_priority, src/oam_internal_priority, $(COLORONLY))
+	$(call create_target, build/hblank_vram_dma, src/hblank_vram_dma, $(COLORONLY))
+	$(call create_target, build/key0_lock_after_boot, src/key0_lock_after_boot, $(COLORONLY))
+	$(call create_target, build/ppu_disabled_state, src/ppu_disabled_state, $(COLORCOMP))
