@@ -1,21 +1,13 @@
-RM_F =
-ifeq ($(OS), Windows_NT)
-	RM_F = Del
-else
-	RM_F = rm -f
-endif
-
 # L - disable optimiziations
 ASMFLAGS = -L
 
 # v - equlivant to -f lhg that fixes some header values
 # m - cartrigde type, p - pad value
-FIXFLAGS = -v -m 0 -p 0
+FIXFLAGS = -v -p 0
 
-# C - for CGB only
-COLORONLY = -C
-# c - for CGB compatible roms
-COLORCOMP = -c	
+COLORONLY = --color-only
+COLORCOMP = --color-compatible
+NO_MBC = --mbc-type ROM
 
 define create_target = 
 	rgbasm $(ASMFLAGS) -i $(2) -i hardware.inc/ -o $(1).o $(2)/main.asm
@@ -24,9 +16,16 @@ define create_target =
 endef
 
 all:
+ifeq ($(OS), Windows_NT)
+	if not exist build mkdir build
+else 
 	mkdir -p build
-	$(call create_target, build/bg_oam_priority, src/color_bg_oam_priority, $(COLORONLY))
-	$(call create_target, build/oam_internal_priority, src/oam_internal_priority, $(COLORONLY))
-	$(call create_target, build/hblank_vram_dma, src/hblank_vram_dma, $(COLORONLY))
-	$(call create_target, build/key0_lock_after_boot, src/key0_lock_after_boot, $(COLORONLY))
-	$(call create_target, build/ppu_disabled_state, src/ppu_disabled_state, $(COLORCOMP))
+endif 
+	$(call create_target, build/bg_oam_priority, src/color_bg_oam_priority, $(COLORONLY) $(NO_MBC))
+	$(call create_target, build/oam_internal_priority, src/oam_internal_priority, $(COLORONLY) $(NO_MBC))
+	$(call create_target, build/hblank_vram_dma, src/hblank_vram_dma, $(COLORONLY) $(NO_MBC))
+	$(call create_target, build/key0_lock_after_boot, src/key0_lock_after_boot, $(COLORONLY) $(NO_MBC))
+	$(call create_target, build/ppu_disabled_state, src/ppu_disabled_state, $(COLORCOMP) $(NO_MBC))
+	$(call create_target, build/mbc_oob_sram_mbc1, src/mbc_oob_sram, $(COLORCOMP) --mbc-type MBC1+RAM --ram-size 2)
+	$(call create_target, build/mbc_oob_sram_mbc3, src/mbc_oob_sram, $(COLORCOMP) --mbc-type MBC3+RAM --ram-size 2)
+	$(call create_target, build/mbc_oob_sram_mbc5, src/mbc_oob_sram, $(COLORCOMP) --mbc-type MBC5+RAM --ram-size 2)
