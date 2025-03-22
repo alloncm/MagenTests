@@ -2,7 +2,7 @@
 ASMFLAGS = -L
 
 # v - equlivant to -f lhg that fixes some header values
-# m - cartrigde type, p - pad value
+# p - pad value
 FIXFLAGS = -v -p 0
 
 COLORONLY = --color-only
