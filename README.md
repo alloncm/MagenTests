@@ -76,7 +76,21 @@ This test is valid for both DMG and CGB machines.
 
 ### Test result
 
-The screen should be all green! (On DMG White)
+The screen should be all green! (White On DMG)
+
+#### Expected result
+
+![image](images/expected_green_screen.png)
+
+## MBC1/3/5 out of bounds RAM access
+
+When attempting to access out of bounds RAM only the mapped address bits are being used (the high bits casuing the out of bounds will be ignored).
+
+This test is valid for both DMG and CGB machines.
+
+### Test result
+
+The screen should be all green! (White On DMG)
 
 #### Expected result
 
